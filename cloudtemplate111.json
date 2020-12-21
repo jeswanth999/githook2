@@ -1,0 +1,108 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "CrossAccountRoles": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "arn:aws:iam::485449423330:root"
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": "8c308ef7-d4c1-43f0-8159-4932f57cabf1"
+                }
+              }
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+    "CrossAccountPolicies": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "IAMCustomerPolicy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupEgress"
+              ],
+              "Resource": "arn:aws:ec2:*:*:*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "ec2:Describe*",
+                "iam:ListInstanceProfiles",
+                "mgh:CreateProgressUpdateStream",
+                "mgh:ImportMigrationTask",
+                "mgh:NotifyMigrationTaskState",
+                "mgh:PutResourceAttributes",
+                "mgh:AssociateDiscoveredResource",
+                "mgh:ListDiscoveredResources",
+                "mgh:AssociateCreatedArtifact",
+                "discovery:ListConfigurations"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "ec2:CreateSecurityGroup",
+                "ec2:ModifyInstanceAttribute",
+                "ec2:CreateTags",
+                "ec2:CreateVolume",
+                "ec2:AttachVolume",
+                "ec2:DetachVolume",
+                "ec2:DeleteVolume",
+                "ec2:CreateImage"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "ec2:TerminateInstances",
+                "ec2:StartInstances",
+                "ec2:StopInstances",
+                "ec2:RunInstances"
+              ],
+              "Resource": "*",
+              "Condition" : {
+                "ForAllValues:StringLike": {
+                  "ec2.ResourceTag/appenv": [
+                    "rmmigrate-dta"
+                  ]
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": "iam:PassRole",
+              "Resource": "*"
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "CrossAccountRoles"
+          }
+        ]
+      }
+    }
+  }
+}
